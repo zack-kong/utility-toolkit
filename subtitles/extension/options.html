@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Local Bilingual Subtitles Settings</title><link rel="stylesheet" href="options.css"></head>
+<body>
+  <main>
+    <h1>Local Bilingual Subtitles</h1>
+    <p class="hint">Click the extension icon to start the registered local service. The extension connects only to <code>127.0.0.1:8765</code>. The Hy-MT2 translation model is licensed under Apache-2.0.</p>
+    <label>Local service token (for manual startup) <input id="token" type="password" autocomplete="off" placeholder="Filled automatically, or run --print-token"></label>
+    <label>Realtime mode <select id="mode"><option value="accurate">Accuracy first (slower)</option><option value="fast">Speed first (draft captions may change)</option></select></label>
+    <label>Source language <select id="sourceLanguage"><option value="auto">Auto-detect</option><option value="en">English</option><option value="ja">Japanese</option><option value="ko">Korean</option><option value="es">Spanish</option></select></label>
+    <label>Target language <select id="targetLanguage"><option value="zh">Simplified Chinese</option><option value="en">English</option><option value="ja">Japanese</option><option value="ko">Korean</option><option value="es">Spanish</option></select></label>
+    <label>Audio type <select id="audioMode"><option value="dialogue">Dialogue</option><option value="music">Music / lyrics</option></select></label>
+    <label>Custom names and terms (one per line: <code>source = Chinese translation</code>; optional language prefix: <code>ja|source = Chinese translation</code>)<textarea id="glossary" rows="5" maxlength="4000" placeholder="en|character name = preferred translation"></textarea></label>
+    <label><input id="termPackEnabled" type="checkbox"> Use bundled term packs (English, Japanese, Korean, Spanish; offline entertainment starter packs)</label>
+    <fieldset><legend>Caption display</legend><label><input id="showOriginal" type="checkbox"> Show original</label><label><input id="showTranslation" type="checkbox"> Show translation</label><label>Font size <input id="fontSize" type="number" min="14" max="48"></label><label>Visible captions <select id="visibleCaptions"><option value="1">1 caption</option><option value="2">2 captions</option><option value="3">3 captions</option></select></label><label>Position <select id="position"><option value="bottom">Bottom</option><option value="top">Top</option><option value="custom">Custom (drag)</option></select></label></fieldset>
+    <div class="buttons"><button id="save">Save settings</button><button id="health">Check service</button><button id="download">Download models</button></div>
+    <pre id="status" aria-live="polite"></pre>
+  </main>
+  <script type="module" src="options.js"></script>
+</body></html>

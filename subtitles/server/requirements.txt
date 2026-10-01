@@ -1,0 +1,11 @@
+fastapi>=0.115,<1
+uvicorn[standard]>=0.30,<1
+numpy>=1.26,<3
+faster-whisper>=1.1,<2
+ctranslate2>=4.6,<5
+huggingface-hub>=0.27,<1
+silero-vad>=5.1,<7
+pytest>=8,<9
+nvidia-cuda-runtime-cu12==12.9.79
+nvidia-cublas-cu12==12.9.2.10
+nvidia-cudnn-cu12==9.26.0.51

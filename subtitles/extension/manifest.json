@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Local Bilingual Subtitles",
+  "version": "0.1.0",
+  "description": "Local bilingual subtitles for the active HTML5 video tab.",
+  "minimum_chrome_version": "116",
+  "permissions": ["activeTab", "storage", "scripting", "offscreen", "tabCapture", "nativeMessaging"],
+  "host_permissions": ["http://127.0.0.1:8765/*"],
+  "background": { "service_worker": "background.js", "type": "module" },
+  "action": { "default_title": "Start/stop local bilingual subtitles" },
+  "options_page": "options.html",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["audio-worklet.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' ws://127.0.0.1:8765 http://127.0.0.1:8765"
+  }
+}
