@@ -2,6 +2,8 @@
 
 A Windows-first Chrome 116+ extension that creates bilingual captions for the active HTML5 video tab. If the page exposes an enabled HTML5 caption track, the extension translates that text locally. Otherwise it captures tab audio and performs local speech recognition, voice activity detection, and translation. Audio and recognized text are sent only to the loopback service at `127.0.0.1`; the first model download contacts the providers listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
+The project consists of a Chrome Manifest V3 extension, a per-user native messaging helper that starts the service, and a local Python service. The service uses faster-whisper medium for speech recognition, Silero VAD for speech segmentation, and Hy-MT2 1.8B GGUF through llama.cpp for translation. It is intended for personal, local use rather than cloud deployment. See the [installation and deployment guide](DEPLOYMENT.md) for a complete first-run walkthrough.
+
 This is a development prototype, not a Chrome Web Store release. It supports one active tab at a time. Captions appear **after** speech, not in perfect sync. It cannot obtain future decoded speech from an ordinary browser video buffer. DRM, sandboxed frames, unsupported players, and direct `<video>` fullscreen can prevent capture or hide the overlay. Overlapping speakers, music, and fast or stylized speech can be missed or mistranslated. No accuracy or latency guarantee is made.
 
 ## Features
@@ -21,30 +23,7 @@ This is a development prototype, not a Chrome Web Store release. It supports one
 
 ## Install and run
 
-Run these commands from this `subtitles` directory in PowerShell:
-
-```powershell
-conda env create --prefix .\.conda -f environment.yml
-```
-
-Open `chrome://extensions`, enable Developer mode, choose **Load unpacked**, and select the `extension` directory. Copy the extension ID shown by Chrome. To enable one-click service startup from the extension icon, register the native helper with your own ID:
-
-```powershell
-.\.conda\python.exe -m pip install -r native_host\requirements-build.txt
-.\native_host\install.ps1 -ExtensionId '<your-32-character-extension-id>'
-```
-
-Reload the extension and refresh any video tabs that were already open. Click the icon on a video tab to start or stop captions. The first click starts the registered local service at `127.0.0.1:8765`; open the extension settings and click **Download models** before the first translation. The service stays running after captions stop for faster reuse. The native host registration is per-user; moving the directory or changing the extension ID requires rerunning `install.ps1`. Run `native_host\unregister.ps1` to remove the registration without deleting models.
-
-For manual service startup, use the same project-local data directory in every terminal:
-
-```powershell
-$env:VAT_DATA_DIR = Join-Path (Get-Location) '.local-data'
-.\.conda\python.exe -m server.app.main --print-token
-.\.conda\python.exe -m server.app.main
-```
-
-Paste the printed token into the extension settings only when using manual startup. Keep it private. Without `VAT_DATA_DIR`, the service uses `%LOCALAPPDATA%\VideoAutoTranslate`.
+Follow the [Windows installation and local deployment guide](DEPLOYMENT.md) for the exact clone, Conda, Chrome, native-helper, model-download, verification, update, and troubleshooting steps. In short: create the project Conda environment, load `extension/` as an unpacked extension, register the native helper with Chrome's extension ID, click the extension icon on a video tab, and explicitly download the models from extension settings.
 
 ## Tests
 
