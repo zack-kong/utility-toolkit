@@ -451,6 +451,7 @@ test('invalidated content context stops event handlers without uncaught errors',
   const listeners = {};
   let disconnected = false;
   let removed = false;
+  let oldDisposed = false;
   class Element {
     constructor() { this.children = []; this.style = { setProperty() {} }; this.isConnected = true; }
     append(...children) { this.children.push(...children); }
@@ -472,12 +473,15 @@ test('invalidated content context stops event handlers without uncaught errors',
     storage: { local: { get: async (defaults) => defaults }, onChanged: { addListener() {} } },
   };
   vm.runInNewContext(fs.readFileSync(path.join(extension, 'content.js'), 'utf8'), {
-    chrome, document, window, MutationObserver: class {
+    chrome, document, window,
+    __vatContentInstalled: { version: 2, active: true, dispose() { oldDisposed = true; } },
+    MutationObserver: class {
       observe() {}
       disconnect() { disconnected = true; }
     },
   });
   await new Promise(setImmediate);
+  assert.equal(oldDisposed, true);
   assert.doesNotThrow(() => listeners.seeking());
   assert.equal(disconnected, true);
   assert.equal(removed, true);

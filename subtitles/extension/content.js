@@ -1,8 +1,7 @@
 (() => {
   const previous = globalThis.__vatContentInstalled;
-  if (previous?.version === 2 && previous.active) return;
   previous?.dispose?.();
-  const installation = { version: 2, active: true, dispose() { this.active = false; } };
+  const installation = { version: 3, active: true, dispose() { this.active = false; } };
   globalThis.__vatContentInstalled = installation;
 
   function handleExtensionError(error) {
