@@ -5,7 +5,7 @@ import numpy as np
 
 from server.app.audio import SAMPLE_RATE
 from server.app.models import Transcript
-from server.app.session import SubtitleSession, remove_overlap, stable_prefix
+from server.app.session import PRE_ROLL_SAMPLES, SubtitleSession, remove_overlap, stable_prefix
 
 
 def test_stable_prefix() -> None:
@@ -55,6 +55,25 @@ def test_flush_sends_buffered_final_caption() -> None:
     asyncio.run(session.flush())
     assert events[-1]["type"] == "subtitle"
     assert events[-1]["final"] is True
+
+
+def test_pause_flushes_short_speech_without_changing_epoch() -> None:
+    events: list[dict[str, object]] = []
+
+    async def send(event: dict[str, object]) -> None:
+        events.append(event)
+
+    async def run() -> None:
+        session = SubtitleSession("test", None, send)  # type: ignore[arg-type]
+        session._infer = lambda audio, hint, overlap_text="", preview_id=None: ("yes", "是", "en", 0.99)  # type: ignore[method-assign]
+        speech = np.full(SAMPLE_RATE // 5, 500, dtype="<i2").tobytes()
+        await session.accept_audio(0, 0, speech)
+        assert session.utterance_samples == SAMPLE_RATE // 5
+        await session.flush()
+        assert session.epoch == 0
+
+    asyncio.run(run())
+    assert [(event["original"], event["final"]) for event in events] == [("yes", True)]
 
 
 def test_fast_mode_does_not_repeat_inference_each_second() -> None:
@@ -113,6 +132,35 @@ def test_slow_inference_queues_speech_instead_of_discarding_it() -> None:
         assert subtitles[0]["original"] == "samples 96000"
 
     asyncio.run(run())
+
+
+def test_long_silence_keeps_short_lead_in_instead_of_forcing_a_split() -> None:
+    processed_lengths: list[int] = []
+
+    async def send(event: dict[str, object]) -> None:
+        pass
+
+    def infer(audio: np.ndarray, hint: str | None, overlap_text: str = "",
+              preview_id: int | None = None) -> tuple[str, str, str, float]:
+        processed_lengths.append(audio.size)
+        return "short phrase", "短句", "en", 0.99
+
+    async def run() -> None:
+        session = SubtitleSession("test", None, send)  # type: ignore[arg-type]
+        session._infer = infer  # type: ignore[method-assign]
+        silence = np.zeros(SAMPLE_RATE, dtype="<i2").tobytes()
+        for sequence in range(10):
+            await session.accept_audio(0, sequence, silence)
+        assert session.utterance_samples == PRE_ROLL_SAMPLES
+        assert not session.pending_finals
+        assert session.processing_task is None
+        speech = np.full(SAMPLE_RATE // 5, 200, dtype="<i2").tobytes()
+        await session.accept_audio(0, 10, speech)
+        await session.accept_audio(0, 11, np.zeros(SAMPLE_RATE * 7 // 10, dtype="<i2").tobytes())
+        await session.flush()
+
+    asyncio.run(run())
+    assert processed_lengths == [PRE_ROLL_SAMPLES + SAMPLE_RATE // 5 + SAMPLE_RATE * 7 // 10]
 
 
 def test_explicit_japanese_language_remains_locked() -> None:

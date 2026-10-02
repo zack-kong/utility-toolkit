@@ -16,7 +16,7 @@ class SileroSpeechValidator:
         if audio_mode == "music":
             # Singing often fails speech VAD; Whisper gets the bounded window.
             return True
-        if samples.size < int(0.25 * SAMPLE_RATE) or rms(samples) < 0.008:
+        if samples.size < int(0.1 * SAMPLE_RATE) or rms(samples) < 0.001:
             return False
         self._load()
         assert self._model is not None and self._get_speech_timestamps is not None
@@ -24,6 +24,7 @@ class SileroSpeechValidator:
             import torch
             timestamps = self._get_speech_timestamps(
                 torch.from_numpy(samples), self._model, sampling_rate=SAMPLE_RATE,
+                threshold=0.35, min_speech_duration_ms=100,
             )
             return bool(timestamps)
         except Exception:

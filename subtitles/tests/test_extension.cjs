@@ -122,9 +122,12 @@ test('pausing keeps captions available for reading, seeking clears them', async 
   vm.runInNewContext(fs.readFileSync(path.join(extension, 'background.js'), 'utf8'), { chrome });
   onMessage({ target: 'background', type: 'vat:video-event', event: 'pause' }, { tab: { id: 7 } });
   await new Promise(setImmediate);
+  assert.equal(session.epoch, 0);
+  assert.ok(delivered.some((message) => message.type === 'vat:pause'));
   assert.equal(delivered.at(-1).type, 'vat:hold');
   onMessage({ target: 'background', type: 'vat:video-event', event: 'seeking' }, { tab: { id: 7 } });
   await new Promise(setImmediate);
+  assert.equal(session.epoch, 1);
   assert.equal(delivered.at(-1).type, 'vat:clear');
 });
 
@@ -223,6 +226,9 @@ test('one inference failure does not stop audio capture', async () => {
   onMessage({ target: 'offscreen', type: 'vat:configure', epoch: 1,
     sourceLanguage: 'ko', targetLanguage: 'es' });
   assert.equal(JSON.parse(sockets[0].sent.at(-1)).target_language, 'es');
+  onMessage({ target: 'offscreen', type: 'vat:pause' });
+  assert.equal(JSON.parse(sockets[0].sent.at(-1)).type, 'pause');
+  onMessage({ target: 'offscreen', type: 'vat:playing' });
   sockets[0].onmessage({ data: JSON.stringify({ type: 'error', code: 'inference_failed', message: 'retry' }) });
   assert.equal(sockets[0].readyState, 1);
   assert.equal(sent.at(-1).state, 'recovering');

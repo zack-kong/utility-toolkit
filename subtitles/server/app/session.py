@@ -41,6 +41,7 @@ def remove_overlap(previous: str, current: str) -> str:
 
 
 OVERLAP_SAMPLES = SAMPLE_RATE // 2
+PRE_ROLL_SAMPLES = SAMPLE_RATE * 3 // 10
 PREVIEW_INTERVAL_SAMPLES = 2 * SAMPLE_RATE
 
 
@@ -144,6 +145,19 @@ class SubtitleSession:
         self.utterance.append(samples)
         self.utterance_samples += samples.size
         self.vad.observe(samples)
+        if not self.vad.speech_seen:
+            # Keep only the lead-in to the next utterance. Long silence must not
+            # force-split the first syllable of a new sentence at six seconds.
+            while self.utterance_samples > PRE_ROLL_SAMPLES:
+                excess = self.utterance_samples - PRE_ROLL_SAMPLES
+                first = self.utterance[0]
+                if first.size <= excess:
+                    self.utterance.pop(0)
+                    self.utterance_samples -= first.size
+                else:
+                    self.utterance[0] = first[excess:].copy()
+                    self.utterance_samples -= excess
+            return
         forced = self.utterance_samples >= 6 * SAMPLE_RATE
         ending = forced or (
             self.utterance_samples >= int(0.8 * SAMPLE_RATE)

@@ -126,6 +126,7 @@ chrome.runtime.onMessage.addListener((message) => {
   if (message.target !== "offscreen") return;
   if (message.type === "vat:start") void start(message);
   if (message.type === "vat:reset") { epoch = message.epoch; sequence = 0; sending = !message.paused; sendControl({ type: "reset", epoch }); }
+  if (message.type === "vat:pause") { sending = false; sendControl({ type: "pause" }); }
   if (message.type === "vat:configure") {
     epoch = message.epoch; sequence = 0;
     sourceLanguage = message.sourceLanguage; targetLanguage = message.targetLanguage;

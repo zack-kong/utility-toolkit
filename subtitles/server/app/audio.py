@@ -25,7 +25,7 @@ class StreamingVad:
     task for silence and makes the streaming boundary deterministic.
     """
 
-    def __init__(self, threshold: float = 0.008, trailing_silence_s: float = 0.6):
+    def __init__(self, threshold: float = 0.004, trailing_silence_s: float = 0.6):
         self.threshold = threshold
         self.trailing_silence_s = trailing_silence_s
         self.silence_samples = 0

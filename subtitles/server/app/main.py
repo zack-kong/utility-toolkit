@@ -160,6 +160,8 @@ async def subtitles(websocket: WebSocket) -> None:
                     await send({"type": "status", "state": "ready", "models": models.status()})
                 elif event_type == "reset" and session is not None:
                     session.reset(int(data["epoch"]))
+                elif event_type == "pause" and session is not None:
+                    await session.flush()
                 elif event_type == "configure" and session is not None:
                     target = data.get("target_language")
                     source = data.get("source_language")

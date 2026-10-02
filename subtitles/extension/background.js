@@ -160,15 +160,22 @@ chrome.runtime.onMessage.addListener((message, sender) => {
         }
         return;
       }
-      if (!["seeking", "pause", "ended"].includes(message.event)) return;
+      if (message.event === "pause") {
+        if (session.source !== "track") {
+          await chrome.runtime.sendMessage({ target: "offscreen", type: "vat:pause" });
+        }
+        await chrome.tabs.sendMessage(session.tabId, { type: "vat:hold", epoch: session.epoch }).catch(() => {});
+        return;
+      }
+      if (!["seeking", "ended"].includes(message.event)) return;
       const next = { ...session, epoch: session.epoch + 1 };
       await chrome.storage.session.set({ [SESSION_KEY]: next });
       if (session.source !== "track") {
         await chrome.runtime.sendMessage({ target: "offscreen", type: "vat:reset", epoch: next.epoch,
-          paused: message.event === "pause" || message.event === "ended" });
+          paused: message.event === "ended" });
       }
       await chrome.tabs.sendMessage(next.tabId, {
-        type: message.event === "pause" ? "vat:hold" : "vat:clear", epoch: next.epoch,
+        type: "vat:clear", epoch: next.epoch,
       }).catch(() => {});
     })();
   }
