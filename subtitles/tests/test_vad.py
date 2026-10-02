@@ -23,3 +23,10 @@ def test_silero_receives_tensor() -> None:
     assert validator.has_speech(short_quiet_speech, "dialogue")
     assert validator.has_speech(np.full(3200, 0.02, dtype=np.float32), "dialogue")
     assert observed == [(True, 16000, 0.35, 100)] * 2
+
+
+def test_vlog_passes_quiet_audible_candidate_without_silero() -> None:
+    validator = SileroSpeechValidator()
+    assert validator.has_speech(np.full(3200, 0.003, dtype=np.float32), "vlog")
+    assert not validator.has_speech(np.zeros(3200, dtype=np.float32), "vlog")
+    assert not validator.has_speech(np.full(800, 0.003, dtype=np.float32), "vlog")

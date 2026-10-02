@@ -16,6 +16,10 @@ class SileroSpeechValidator:
         if audio_mode == "music":
             # Singing often fails speech VAD; Whisper gets the bounded window.
             return True
+        if audio_mode == "vlog":
+            # Speech under music/noise can fail Silero entirely. In this opt-in
+            # mode, pass audible candidates to Whisper instead of losing them.
+            return samples.size >= int(0.1 * SAMPLE_RATE) and rms(samples) >= 0.002
         if samples.size < int(0.1 * SAMPLE_RATE) or rms(samples) < 0.001:
             return False
         self._load()

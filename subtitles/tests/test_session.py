@@ -16,6 +16,12 @@ def test_stable_prefix() -> None:
     assert stable_prefix("one", "two") == ""
 
 
+def test_vlog_uses_lower_streaming_gate() -> None:
+    session = SubtitleSession("test", None, None, audio_mode="vlog")  # type: ignore[arg-type]
+    assert session.vad.threshold == 0.002
+    assert SubtitleSession("test", None, None).vad.threshold == 0.004  # type: ignore[arg-type]
+
+
 def test_forced_chunk_transcript_overlap_is_removed() -> None:
     assert remove_overlap("なんだよ知らねえ", "知らねえことばっか") == "ことばっか"
     assert remove_overlap("hello world", "world again") == "again"

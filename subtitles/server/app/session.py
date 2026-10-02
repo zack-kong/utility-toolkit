@@ -81,6 +81,10 @@ class SubtitleSession:
     processing_task: asyncio.Task[None] | None = None
     closed: bool = False
 
+    def __post_init__(self) -> None:
+        if self.audio_mode == "vlog":
+            self.vad.threshold = 0.002
+
     def reset(self, epoch: int) -> None:
         if epoch <= self.epoch:
             return

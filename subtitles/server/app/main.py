@@ -138,7 +138,8 @@ async def subtitles(websocket: WebSocket) -> None:
                         models=models,
                         send=send,
                         mode="fast" if data.get("mode") == "fast" else "accurate",
-                        audio_mode="music" if data.get("audio_mode") == "music" else "dialogue",
+                        audio_mode=(data.get("audio_mode") if data.get("audio_mode") in
+                                    {"dialogue", "vlog", "music"} else "dialogue"),
                         epoch=int(data.get("epoch", 0)),
                         language_hint=(data.get("source_language") if data.get("source_language") in
                                        {"ja", "en", "ko", "es"} else None),
